@@ -1,0 +1,19 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Desactivar el feedback drawer y badges automáticos de Netlify en todos los contextos
+[context.production.environment]
+  NETLIFY_FEEDBACK_DISABLED = "true"
+
+[context.deploy-preview.environment]
+  NETLIFY_FEEDBACK_DISABLED = "true"
+
+[context.branch-deploy.environment]
+  NETLIFY_FEEDBACK_DISABLED = "true"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"

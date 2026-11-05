@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root, body, input, button, select, textarea, table, th, td, label {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+body {
+  background-color: #F4F7FB;
+  min-height: 100vh;
+}
+
+/* Snowflake animation */
+@keyframes fall {
+  0% {
+    transform: translateY(0) translateX(0px);
+  }
+  50% {
+    transform: translateY(55vh) translateX(25px);
+  }
+  100% {
+    transform: translateY(115vh) translateX(-20px);
+  }
+}
+
+.snowflake {
+  position: fixed;
+  top: -50px;
+  color: rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+  z-index: 20;
+  user-select: none;
+  animation: fall linear infinite;
+  will-change: transform;
+}
+
+/* Global Scrollbar Style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F7FB;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #01ACAD;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #008f90;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #01ACAD #F4F7FB;
+}
+
+/* Custom Celeste / Cyan Scrollbar for dropdowns and containers */
+.custom-scrollbar-cyan::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar-cyan::-webkit-scrollbar-track {
+  background: #E8F9F9;
+  border-radius: 9999px;
+  margin: 4px 2px;
+}
+.custom-scrollbar-cyan::-webkit-scrollbar-thumb {
+  background: #01ACAD;
+  border-radius: 9999px;
+}
+.custom-scrollbar-cyan::-webkit-scrollbar-thumb:hover {
+  background: #008f90;
+}
+.custom-scrollbar-cyan {
+  scrollbar-width: thin;
+  scrollbar-color: #01ACAD #E8F9F9;
+}
+
+/* Ocultar cualquier marca de agua, badge, drawer o feedback inyectado por Netlify */
+netlify-drawer,
+[data-netlify-drawer],
+[data-netlify-badge],
+.netlify-drawer,
+.netlify-badge,
+#netlify-drawer,
+#netlify-feedback,
+.__netlify-feedback-badge,
+iframe[src*="netlify"],
+iframe[id*="netlify"],
+div[class*="netlify-drawer"],
+div[id*="netlify-drawer"],
+div[class*="netlify-feedback"],
+div[id*="netlify-feedback"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  max-width: 0 !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  z-index: -9999 !important;
+  overflow: hidden !important;
+}
