@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Mail, CreditCard, AlertCircle, Calendar, ChevronDown, Check } from 'lucide-react';
 
 const SUGGESTED_DATES = [
-  'Jueves 3 de noviembre',
-  'Viernes 4 de noviembre',
-  'Lunes 7 de noviembre',
-  'Jueves 10 de noviembre',
-  'Jueves 17 de noviembre',
-  'Viernes 18 de noviembre',
-  'Viernes 27 de noviembre'
+  'Viernes 27 de noviembre',
+  'Jueves 3 de diciembre',
+  'Viernes 4 de diciembre',
+  'Lunes 7 de diciembre',
+  'Jueves 10 de diciembre',
+  'Jueves 17 de diciembre',
+  'Viernes 18 de diciembre'
 ];
 
 export default function VoteConfirmationModal({
