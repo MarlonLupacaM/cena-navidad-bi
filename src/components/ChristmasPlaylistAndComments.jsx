@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, ChevronRight, Heart, CheckCircle2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, X, ChevronLeft, ChevronRight, Heart, CheckCircle2, Sparkles, Pin } from 'lucide-react';
 import { getLiveComments, insertComment, toggleCommentLike, getOrCreateDeviceId } from '../lib/supabase';
 
 const POSTIT_COLORS = [
@@ -109,8 +109,37 @@ export default function ChristmasPlaylistAndComments() {
   const [currentPage, setCurrentPage] = useState(0);
 
   const ITEMS_PER_PAGE = 8;
-  const totalPages = Math.ceil(notes.length / ITEMS_PER_PAGE) || 1;
-  const visibleNotes = notes.slice(
+
+  // Ordenar notas: la nota con mayor cantidad de likes (mínimo 1) queda fijada arriba en primer lugar
+  const { sortedNotes, pinnedNoteId } = useMemo(() => {
+    if (!notes || notes.length === 0) return { sortedNotes: [], pinnedNoteId: null };
+
+    // Buscar la nota con el máximo de likes (si tiene al menos 1 like)
+    let maxLikes = 0;
+    let bestId = null;
+
+    notes.forEach((n) => {
+      const lk = n.likes || 0;
+      if (lk > maxLikes) {
+        maxLikes = lk;
+        bestId = n.id;
+      }
+    });
+
+    if (maxLikes > 0 && bestId !== null) {
+      const topNote = notes.find((n) => n.id === bestId);
+      const rest = notes.filter((n) => n.id !== bestId);
+      return {
+        sortedNotes: [topNote, ...rest],
+        pinnedNoteId: bestId
+      };
+    }
+
+    return { sortedNotes: notes, pinnedNoteId: null };
+  }, [notes]);
+
+  const totalPages = Math.ceil(sortedNotes.length / ITEMS_PER_PAGE) || 1;
+  const visibleNotes = sortedNotes.slice(
     currentPage * ITEMS_PER_PAGE,
     (currentPage + 1) * ITEMS_PER_PAGE
   );
@@ -300,11 +329,14 @@ export default function ChristmasPlaylistAndComments() {
           {visibleNotes.map((note) => {
             const color = POSTIT_COLORS[note.colorIdx % POSTIT_COLORS.length];
             const isDeseo = note.type === 'deseo';
+            const isPinned = note.id === pinnedNoteId;
 
             return (
               <div
                 key={note.id}
-                className={`relative ${color.bg} ${color.text} ${color.border} border p-4 pt-5 pb-8 rounded-xs shadow-lg ${color.shadow} transform ${note.rotation} hover:rotate-0 hover:scale-105 transition-all duration-200 flex flex-col justify-between min-h-[185px] sm:min-h-[200px] select-none`}
+                className={`relative ${color.bg} ${color.text} ${color.border} border p-4 pt-5 pb-8 rounded-xs shadow-lg ${color.shadow} transform ${note.rotation} hover:rotate-0 hover:scale-105 transition-all duration-200 flex flex-col justify-between min-h-[185px] sm:min-h-[200px] select-none ${
+                  isPinned ? 'ring-2 ring-amber-500/50 shadow-xl' : ''
+                }`}
                 style={{
                   boxShadow: '0 8px 18px rgba(0,0,0,0.16), 0 2px 5px rgba(0,0,0,0.1)'
                 }}
@@ -314,15 +346,25 @@ export default function ChristmasPlaylistAndComments() {
                   <div className="w-1 h-1 rounded-full bg-white opacity-80" />
                 </div>
 
-                {/* Tape sutil en esquina */}
-                <div
-                  className={`absolute top-0 right-3 w-7 h-3 ${color.tape} opacity-70 -rotate-6`}
-                />
+                {/* Badge Fijado Destacado si es el más votado */}
+                {isPinned && (
+                  <div className="absolute -top-2.5 -right-1 bg-amber-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 z-20 border border-white/80 animate-in fade-in duration-300">
+                    <Pin className="w-2.5 h-2.5 fill-current" />
+                    <span>Fijado</span>
+                  </div>
+                )}
+
+                {/* Tape sutil en esquina (solo si no está el pin badge) */}
+                {!isPinned && (
+                  <div
+                    className={`absolute top-0 right-3 w-7 h-3 ${color.tape} opacity-70 -rotate-6`}
+                  />
+                )}
 
                 {/* Encabezado del Post-it */}
                 <div>
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider mb-2.5 border-b border-black/10 pb-1">
-                    <span className="opacity-90">
+                    <span className="opacity-90 flex items-center gap-1">
                       {isDeseo ? 'Deseo' : 'Opinión'}
                     </span>
                     <span className="opacity-60 text-[9px] font-medium">{note.time}</span>
