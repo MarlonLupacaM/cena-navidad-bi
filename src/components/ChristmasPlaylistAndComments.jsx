@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, X, ChevronLeft, ChevronRight, ShieldAlert, Info } from 'lucide-react';
 import { getLiveComments, insertComment } from '../lib/supabase';
 
 const POSTIT_COLORS = [
@@ -161,9 +161,45 @@ export default function ChristmasPlaylistAndComments() {
     };
   }, []);
 
-  const handleAddNote = (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    return false;
+  const handleAddNote = async (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+
+    const randomRot = ROTATIONS[Math.floor(Math.random() * ROTATIONS.length)];
+    const noteText = text.trim();
+    const noteColor = selectedColor;
+    const noteType = type;
+
+    const tempId = `temp-${Date.now()}`;
+    const newNote = {
+      id: tempId,
+      type: noteType,
+      text: noteText,
+      colorIdx: noteColor,
+      rotation: randomRot,
+      time: 'Hace un momento'
+    };
+
+    // Actualización inmediata en UI
+    setNotes((prev) => [newNote, ...prev]);
+    setCurrentPage(0);
+    setText('');
+    setSelectedColor((prev) => (prev + 1) % POSTIT_COLORS.length);
+    setIsModalOpen(false);
+
+    // Guardado en Supabase con IP y dispositivo
+    const res = await insertComment({
+      type: noteType,
+      text: noteText,
+      colorIdx: noteColor,
+      rotation: randomRot
+    });
+
+    if (res?.success && res.data?.id) {
+      setNotes((prev) =>
+        prev.map((n) => (n.id === tempId ? { ...n, id: res.data.id } : n))
+      );
+    }
   };
 
   const handlePrevPage = () => {
@@ -187,14 +223,14 @@ export default function ChristmasPlaylistAndComments() {
           </h3>
         </div>
 
-        {/* Top Controls: Navegación de páginas con flechitas y botón Desactivado */}
+        {/* Top Controls: Navegación de páginas con flechitas y botón Agregar */}
         <div className="flex items-center gap-3 self-start md:self-center">
           {totalPages > 1 && (
             <div className="flex items-center gap-1.5 bg-[#F4F7FB] border border-slate-200 px-2 py-1 rounded-xl text-xs">
               <button
                 type="button"
                 onClick={handlePrevPage}
-                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition shadow-2xs active:scale-95"
+                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition shadow-2xs active:scale-95 cursor-pointer"
                 title="Página anterior"
               >
                 <ChevronLeft className="w-4 h-4 text-slate-600" />
@@ -207,7 +243,7 @@ export default function ChristmasPlaylistAndComments() {
               <button
                 type="button"
                 onClick={handleNextPage}
-                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition shadow-2xs active:scale-95"
+                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition shadow-2xs active:scale-95 cursor-pointer"
                 title="Página siguiente"
               >
                 <ChevronRight className="w-4 h-4 text-slate-600" />
@@ -217,12 +253,11 @@ export default function ChristmasPlaylistAndComments() {
 
           <button
             type="button"
-            disabled
-            className="bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 cursor-not-allowed select-none shadow-none pointer-events-none opacity-80"
-            title="La publicación de nuevos comentarios ha concluido"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#002559] hover:bg-[#001c47] text-white font-bold text-xs py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-slate-400" />
-            <span>Comentarios cerrados</span>
+            <Plus className="w-3.5 h-3.5 text-[#01ACAD]" />
+            <span>Agregar comentario</span>
           </button>
         </div>
       </div>
@@ -299,6 +334,145 @@ export default function ChristmasPlaylistAndComments() {
       </div>
 
       {/* Fin del tablero */}
+
+      {/* Modal para Agregar Comentario con Anuncio de Normas */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Modal */}
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#01ACAD] block">
+                  Comunidad Caja Arequipa
+                </span>
+                <h4 className="text-base font-black text-[#002559]">
+                  Publicar en el Muro
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+                title="Cerrar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Anuncio de Normas y Moderación */}
+            <div className="mb-4 bg-amber-50 border border-amber-200/90 rounded-2xl p-3 text-amber-950 text-[11px] leading-relaxed">
+              <div className="flex items-center gap-1.5 font-black text-amber-900 mb-1">
+                <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
+                <span>Normas de convivencia del muro</span>
+              </div>
+              <ul className="list-disc pl-4 space-y-0.5 text-amber-900/90 font-medium">
+                <li>Solo comentarios de <strong>deseos navideños y opiniones</strong> sobre las sedes.</li>
+                <li><strong>Prohibido lenguaje ofensivo</strong>, quejas o comentarios inapropiados.</li>
+                <li><strong>Evita colocar nombres</strong> o alusiones personales a compañeros.</li>
+              </ul>
+              <div className="mt-2 pt-1.5 border-t border-amber-200/60 flex items-center gap-1 text-[10px] text-amber-800 font-semibold">
+                <Info className="w-3 h-3 shrink-0" />
+                <span>Por seguridad y auditoría se registra la IP y el dispositivo de cada publicación.</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddNote} className="space-y-3.5 text-xs">
+              {/* Selector de Tipo */}
+              <div>
+                <label className="block font-bold text-[#002559] mb-1.5">
+                  Tipo de publicación:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setType('deseo')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition text-center cursor-pointer ${
+                      type === 'deseo'
+                        ? 'bg-rose-100 border-rose-400 text-rose-950 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    Deseo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setType('opinion')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition text-center cursor-pointer ${
+                      type === 'opinion'
+                        ? 'bg-cyan-100 border-cyan-400 text-cyan-950 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    Opinión
+                  </button>
+                </div>
+              </div>
+
+              {/* Mensaje */}
+              <div>
+                <label className="block font-bold text-[#002559] mb-1">
+                  Mensaje:
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={
+                    type === 'deseo'
+                      ? 'Escribe tu deseo o saludo para el equipo...'
+                      : 'Escribe tu opinión constructiva sobre los locales...'
+                  }
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#01ACAD] resize-none text-slate-900"
+                />
+              </div>
+
+              {/* Color del Post-it */}
+              <div>
+                <label className="block font-bold text-[#002559] mb-1.5">
+                  Color del post-it:
+                </label>
+                <div className="flex items-center gap-2">
+                  {POSTIT_COLORS.map((col, idx) => (
+                    <button
+                      key={col.id}
+                      type="button"
+                      onClick={() => setSelectedColor(idx)}
+                      className={`w-7 h-7 rounded-xl ${col.bg} ${col.border} border-2 transition transform hover:scale-110 cursor-pointer ${
+                        selectedColor === idx ? 'ring-2 ring-[#002559] scale-110 shadow-xs' : 'opacity-80'
+                      }`}
+                      title={col.id}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-xl transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#002559] hover:bg-[#001c47] text-white font-bold py-2 px-3 rounded-xl transition shadow-sm active:scale-95 cursor-pointer"
+                >
+                  Publicar Post-it
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

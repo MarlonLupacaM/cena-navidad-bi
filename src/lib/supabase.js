@@ -113,8 +113,96 @@ export async function getLiveComments() {
   }
 }
 
+/**
+ * Obtiene la IP pública del usuario de forma segura y ligera
+ */
+async function getUserIP() {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
+    if (res.ok) {
+      const data = await res.json();
+      return data.ip || 'Desconocida';
+    }
+  } catch {}
+  return 'Desconocida';
+}
+
+/**
+ * Obtiene una descripción legible del dispositivo/navegador
+ */
+function getDeviceInfo() {
+  try {
+    const ua = navigator.userAgent;
+    let device = 'Escritorio';
+    if (/android/i.test(ua)) device = 'Android';
+    else if (/iPhone|iPad|iPod/i.test(ua)) device = 'iOS';
+    else if (/mobile/i.test(ua)) device = 'Móvil';
+
+    let browser = 'Navegador';
+    if (/edg/i.test(ua)) browser = 'Edge';
+    else if (/chrome|crios/i.test(ua)) browser = 'Chrome';
+    else if (/firefox|fxios/i.test(ua)) browser = 'Firefox';
+    else if (/safari/i.test(ua)) browser = 'Safari';
+
+    return `${device} - ${browser}`;
+  } catch {
+    return 'Desconocido';
+  }
+}
+
+/**
+ * Publica un nuevo post-it en el muro de Supabase guardando IP y dispositivo
+ */
 export async function insertComment({ type, text, colorIdx, rotation }) {
-  // Publicación de comentarios deshabilitada por administración
-  console.warn('La publicación de nuevos comentarios se encuentra deshabilitada.');
-  return { success: false, error: 'La publicación de nuevos comentarios ha finalizado.' };
+  try {
+    const [ip, deviceInfo] = await Promise.all([
+      getUserIP(),
+      Promise.resolve(getDeviceInfo())
+    ]);
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify({
+        type: type || 'deseo',
+        text: text.trim(),
+        color_idx: typeof colorIdx === 'number' ? colorIdx : 0,
+        rotation: rotation || 'rotate-0',
+        ip_address: ip,
+        device_info: deviceInfo
+      })
+    });
+
+    if (!res.ok) {
+      // Si la base de datos aún no tiene las columnas ip_address o device_info, reintenta sin ellas
+      const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({
+          type: type || 'deseo',
+          text: text.trim(),
+          color_idx: typeof colorIdx === 'number' ? colorIdx : 0,
+          rotation: rotation || 'rotate-0'
+        })
+      });
+      if (!fallbackRes.ok) {
+        const errorText = await fallbackRes.text();
+        return { success: false, error: errorText };
+      }
+      const createdFallback = await fallbackRes.json();
+      return { success: true, data: Array.isArray(createdFallback) ? createdFallback[0] : createdFallback };
+    }
+
+    const created = await res.json();
+    return { success: true, data: Array.isArray(created) ? created[0] : created };
+  } catch (err) {
+    console.error('Error publicando comentario en Supabase:', err);
+    return { success: false, error: err.message };
+  }
 }
