@@ -107,11 +107,11 @@ export const INITIAL_VENUES = [
     district: "Cayma",
     address: "Calle Tronchadero 307, Cayma",
     zone: "Cayma",
-    priceRange: "S/ 50.00 - S/ 65.00",
-    pricePerPerson: "S/ 50 - 65",
+    priceRange: "S/ 50.00 - S/ 90.00",
+    pricePerPerson: "S/ 50 - 90",
     capacity: "Salón para eventos corporativos",
     capacityNum: 100,
-    style: "Ahumados Artesanales & Pisco Sour",
+    style: "Parrilla Tradicional & Cortes Ahumados",
     badge: "Opción Más Económica",
     badgeColor: "bg-[#002559]",
     image: "./donfacu/imagen (1).jpg",
@@ -123,52 +123,77 @@ export const INITIAL_VENUES = [
       "./donfacu/imagen (5).jpg"
     ],
     menu: {
-      appetizer: "Cóctel de bienvenida: Pisco sour clásico, maracuyá sour o reserva tropical.",
-      main: "Paquete 1: Bife jugoso con papas fritas o grilladas y ensalada de la casa. Paquete 2: Panceta ahumada o Bondiola ahumada artesanal con papas y ensalada.",
-      dessert: "Brownie tibio de chocolate con bola de helado artesanal.",
-      beverages: "Bebidas a elección: Chicha morada, limonada frozen, jugo de maracuyá o agua mineral."
+      appetizer: "Brindis con Copa de Sangría (o Copa de Vino en Paquete 4) + Empanada argentina en Paquete 4.",
+      main: "4 Paquetes navideños: Chuletas/Pollo, Panceta y Bondiola ahumada, Bife ancho/angosto o Medallón de bondiola con Lomo fino 150 gr.",
+      dessert: "Tres leches navideño en todos los paquetes.",
+      beverages: "Bebida de estación, agua mineral o gaseosa según el paquete seleccionado."
     },
     menuOptions: [
       {
-        title: "Paquete 1",
-        price: "S/ 65.00",
+        title: "Paquete Navideño 1",
+        price: "S/ 50.00",
         tag: null,
         dishes: [
-          { label: "Plato de Fondo", items: ["Bife + Papas fritas o papas grilladas + ensalada de la casa"] },
-          { label: "Cóctel", items: ["Pisco sour clásico, maracuyá o reserva tropical"] },
-          { label: "Bebida", items: ["Chicha, limonada, maracuyá o agua"] },
-          { label: "Postre", items: ["Brownie + bola de helado"] }
+          { label: "Brindis", items: ["Copa de sangría"] },
+          { label: "Bebida", items: ["Bebida de estación"] },
+          { label: "Plato de Fondo", items: ["Chuleta de cerdo, Chuleta de res o Filete de pollo + Papa frita o grillada + Ensalada de la casa"] },
+          { label: "Postre", items: ["Tres leches navideño"] }
         ],
         extra: null
       },
       {
-        title: "Paquete 2",
-        price: "S/ 50.00",
+        title: "Paquete Navideño 2",
+        price: "S/ 55.00",
         tag: null,
         dishes: [
-          { label: "Plato de Fondo", items: ["Panceta ahumada o Bondiola ahumada + papa frita o papa grillada + ensalada de la casa"] },
-          { label: "Cóctel", items: ["Pisco sour clásico, maracuyá o reserva tropical"] },
-          { label: "Bebida", items: ["Chicha, limonada, maracuyá o agua"] },
-          { label: "Postre", items: ["Brownie + bola de helado"] }
+          { label: "Brindis", items: ["Copa de sangría"] },
+          { label: "Bebida", items: ["Bebida de estación o Agua"] },
+          { label: "Plato de Fondo", items: ["Panceta ahumada o Bondiola ahumada + Puré de camote, Arroz árabe y Ensalada de fideos"] },
+          { label: "Postre", items: ["Tres leches navideño"] }
         ],
-        extra: null
+        extra: "Nota: Panceta o bondiola ahumada mínimo 10 und para pedirlas (no se aceptan cantidades menores). Pueden pedir la clásica guarnición de papa frita y ensalada de la casa."
+      },
+      {
+        title: "Paquete Navideño 3",
+        price: "S/ 65.00",
+        tag: null,
+        dishes: [
+          { label: "Brindis", items: ["Copa de sangría"] },
+          { label: "Bebida", items: ["Bebida de estación, Agua o Gaseosa"] },
+          { label: "Plato de Fondo", items: ["Bife ancho o Bife angosto + Puré de camote, Arroz árabe y Ensalada de fideos"] },
+          { label: "Postre", items: ["Tres leches navideño"] }
+        ],
+        extra: "Nota: Pueden pedir la clásica guarnición de papa frita o grillada y ensalada de la casa."
+      },
+      {
+        title: "Paquete Navideño 4",
+        price: "S/ 90.00",
+        tag: null,
+        dishes: [
+          { label: "Brindis", items: ["Copa de sangría o Copa de vino"] },
+          { label: "Bebida", items: ["Agua o Gaseosa personal"] },
+          { label: "Entrada", items: ["Empanada argentina"] },
+          { label: "Plato de Fondo", items: ["Medallón de bondiola + Lomo fino 150 gr + Puré de camote, Arroz árabe y Ensalada de fideos"] },
+          { label: "Postre", items: ["Tres leches navideño"] }
+        ],
+        extra: "Nota: Pueden pedir la clásica guarnición de papa frita o grillada y ensalada de la casa."
       }
     ],
     features: [
-      "Paquetes completos desde S/ 50.00 y S/ 65.00 por persona",
-      "Cóctel de bienvenida con Pisco Sour o Reserva Tropical incluido",
-      "Especialidad en panceta y bondiola ahumada",
-      "Postre completo de brownie con bola de helado",
-      "Atención ágil ideal para grupos corporativos"
+      "4 Paquetes navideños desde S/ 50.00 hasta S/ 90.00 por persona",
+      "Brindis con Copa de Sangría o Vino incluido en todos los paquetes",
+      "Especialidad en panceta ahumada, bondiola, bife y lomo fino",
+      "Postre de Tres Leches Navideño incluido en cada opción",
+      "Flexibilidad de elegir guarniciones navideñas o papas clásicas"
     ],
     pros: [
-      "El costo más accesible sin perder sabor de parrilla",
-      "Postre y cóctel de bienvenida ya incluidos en el precio",
-      "Opciones de ahumados artesanales muy sabrosos"
+      "El costo inicial más accesible desde S/ 50.00",
+      "Incluye brindis, bebidas, plato principal y postre tres leches",
+      "Opciones premium de lomo fino y empanada argentina en Paquete 4"
     ],
     mapUrl: "https://www.google.com/maps/place/Don+Facu+-+Peruvian+Steakhouse/@-16.3887627,-71.548565,17z/data=!3m1!4b1!4m6!3m5!1s0x91424b0069abf097:0xd9e0c1551e7847db!8m2!3d-16.3887627!4d-71.5459901!16s%2Fg%2F11vplbh0yh?entry=ttu&g_ep=EgoyMDI2MTEwMi4wIKXMDSoASAFQAw%3D%3D",
     documentFile: "./propuestas/DonFacu.jpg",
-    documentName: "Hoja de Cotización Don Facu (Imagen)",
+    documentName: "Cotización Oficial Don Facu (Imagen)",
     initialVotes: 118
   },
   {
