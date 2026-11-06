@@ -96,14 +96,28 @@ export async function insertVote({ employeeCode, email, preferredDate, venueId, 
 }
 
 /**
- * Carga los comentarios y deseos del muro desde Supabase
+ * Carga los comentarios y deseos del muro desde Supabase (solo los activos/aprobados manualmente)
  */
 export async function getLiveComments() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/comments?select=*&order=created_at.desc&limit=60`, {
-      method: 'GET',
-      headers
-    });
+    // Si la columna is_active existe, filtramos por is_active=eq.true
+    // Si aún no se creó, el fallback carga normalmente para no romper los existentes
+    let res = await fetch(
+      `${SUPABASE_URL}/rest/v1/comments?select=*,comment_likes(id,device_id)&is_active=eq.true&order=created_at.desc&limit=80`,
+      {
+        method: 'GET',
+        headers
+      }
+    );
+
+    if (!res.ok) {
+      // Fallback si aún no existe la tabla comment_likes o la columna is_active
+      res = await fetch(`${SUPABASE_URL}/rest/v1/comments?select=*&order=created_at.desc&limit=80`, {
+        method: 'GET',
+        headers
+      });
+    }
+
     if (!res.ok) throw new Error(`Error obteniendo comentarios: ${res.statusText}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -111,6 +125,18 @@ export async function getLiveComments() {
     console.warn('Supabase no disponible para comentarios, usando fallback local:', err.message);
     return null;
   }
+}
+
+/**
+ * Obtiene o crea un Device ID único y persistente para este navegador
+ */
+export function getOrCreateDeviceId() {
+  let deviceId = localStorage.getItem('caja_device_id');
+  if (!deviceId) {
+    deviceId = 'dev_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
+    localStorage.setItem('caja_device_id', deviceId);
+  }
+  return deviceId;
 }
 
 /**
@@ -151,7 +177,7 @@ function getDeviceInfo() {
 }
 
 /**
- * Publica un nuevo post-it en el muro de Supabase guardando IP y dispositivo
+ * Publica un nuevo post-it en Supabase (por defecto is_active = false para activación manual)
  */
 export async function insertComment({ type, text, colorIdx, rotation }) {
   try {
@@ -172,12 +198,13 @@ export async function insertComment({ type, text, colorIdx, rotation }) {
         color_idx: typeof colorIdx === 'number' ? colorIdx : 0,
         rotation: rotation || 'rotate-0',
         ip_address: ip,
-        device_info: deviceInfo
+        device_info: deviceInfo,
+        is_active: false // Desactivado por defecto hasta que lo actives manualmente en Supabase
       })
     });
 
     if (!res.ok) {
-      // Si la base de datos aún no tiene las columnas ip_address o device_info, reintenta sin ellas
+      // Fallback si aún no existe la columna is_active en la BD
       const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
         method: 'POST',
         headers: {
@@ -206,3 +233,54 @@ export async function insertComment({ type, text, colorIdx, rotation }) {
     return { success: false, error: err.message };
   }
 }
+
+/**
+ * Da o quita corazón (like) a un post-it, controlado por device_id e IP antispam
+ */
+export async function toggleCommentLike(commentId) {
+  try {
+    const deviceId = getOrCreateDeviceId();
+    const ip = await getUserIP();
+
+    // 1. Verificar si ya le dio like
+    const checkRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/comment_likes?comment_id=eq.${commentId}&device_id=eq.${deviceId}`,
+      { method: 'GET', headers }
+    );
+
+    if (checkRes.ok) {
+      const existing = await checkRes.json();
+      if (Array.isArray(existing) && existing.length > 0) {
+        // Ya dio like -> Quitar like (toggle off)
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/comment_likes?comment_id=eq.${commentId}&device_id=eq.${deviceId}`,
+          { method: 'DELETE', headers }
+        );
+        return { success: true, liked: false };
+      }
+    }
+
+    // 2. No ha dado like -> Insertar nuevo like (toggle on)
+    const addRes = await fetch(`${SUPABASE_URL}/rest/v1/comment_likes`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify({
+        comment_id: commentId,
+        device_id: deviceId,
+        ip_address: ip
+      })
+    });
+
+    if (addRes.ok) {
+      return { success: true, liked: true };
+    }
+    return { success: false };
+  } catch (err) {
+    console.error('Error en toggleCommentLike:', err);
+    return { success: false, error: err.message };
+  }
+}
+

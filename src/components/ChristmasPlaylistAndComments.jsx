@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, ChevronRight, ShieldAlert, Info } from 'lucide-react';
-import { getLiveComments, insertComment } from '../lib/supabase';
+import { Plus, X, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { getLiveComments, insertComment, toggleCommentLike, getOrCreateDeviceId } from '../lib/supabase';
 
 const POSTIT_COLORS = [
   {
@@ -125,26 +125,39 @@ export default function ChristmasPlaylistAndComments() {
   // Sincronización en vivo con Supabase para el muro de post-its
   useEffect(() => {
     let isMounted = true;
+    const deviceId = getOrCreateDeviceId();
 
     const syncComments = async () => {
       const liveData = await getLiveComments();
       if (!isMounted || !Array.isArray(liveData)) return;
 
-      const formatted = liveData.map((item, idx) => ({
-        id: item.id,
-        type: item.type || 'deseo',
-        text: item.text,
-        colorIdx: typeof item.color_idx === 'number' ? item.color_idx : idx % POSTIT_COLORS.length,
-        rotation: item.rotation || 'rotate-0',
-        time: item.created_at
-          ? new Date(item.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
-          : 'Hace un momento'
-      }));
+      const formatted = liveData.map((item, idx) => {
+        const likesArr = Array.isArray(item.comment_likes) ? item.comment_likes : [];
+        const likesCount = likesArr.length;
+        const likedByMe = likesArr.some((l) => l.device_id === deviceId);
 
-      // Las notas nuevas de la BD van primero y las 3 notas iniciales siempre se preservan
+        return {
+          id: item.id,
+          type: item.type || 'deseo',
+          text: item.text,
+          colorIdx: typeof item.color_idx === 'number' ? item.color_idx : idx % POSTIT_COLORS.length,
+          rotation: item.rotation || 'rotate-0',
+          likes: likesCount,
+          likedByMe,
+          time: item.created_at
+            ? new Date(item.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+            : 'Hace un momento'
+        };
+      });
+
+      // Las notas aprobadas de la BD van primero y las 3 notas iniciales siempre se preservan
       const merged = [
         ...formatted.filter((f) => !INITIAL_NOTES.some((init) => init.id === f.id || init.text === f.text)),
-        ...INITIAL_NOTES
+        ...INITIAL_NOTES.map((init) => ({
+          ...init,
+          likes: typeof init.likes === 'number' ? init.likes : 0,
+          likedByMe: Boolean(init.likedByMe)
+        }))
       ];
 
       setNotes(merged);
@@ -161,6 +174,26 @@ export default function ChristmasPlaylistAndComments() {
     };
   }, []);
 
+  const handleToggleLike = async (noteId) => {
+    // Si es nota inicial local o temporal
+    if (typeof noteId === 'string' && noteId.startsWith('temp-')) return;
+
+    // Actualización optimista inmediata en UI
+    setNotes((prev) =>
+      prev.map((n) => {
+        if (n.id === noteId) {
+          const newLiked = !n.likedByMe;
+          const newCount = newLiked ? (n.likes || 0) + 1 : Math.max(0, (n.likes || 0) - 1);
+          return { ...n, likedByMe: newLiked, likes: newCount };
+        }
+        return n;
+      })
+    );
+
+    // Persistir like en Supabase
+    await toggleCommentLike(noteId);
+  };
+
   const handleAddNote = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
@@ -170,36 +203,20 @@ export default function ChristmasPlaylistAndComments() {
     const noteColor = selectedColor;
     const noteType = type;
 
-    const tempId = `temp-${Date.now()}`;
-    const newNote = {
-      id: tempId,
-      type: noteType,
-      text: noteText,
-      colorIdx: noteColor,
-      rotation: randomRot,
-      time: 'Hace un momento'
-    };
-
-    // Actualización inmediata en UI
-    setNotes((prev) => [newNote, ...prev]);
-    setCurrentPage(0);
     setText('');
     setSelectedColor((prev) => (prev + 1) % POSTIT_COLORS.length);
     setIsModalOpen(false);
 
-    // Guardado en Supabase con IP y dispositivo
-    const res = await insertComment({
+    // Guardado en Supabase (desactivado por defecto hasta aprobación manual)
+    await insertComment({
       type: noteType,
       text: noteText,
       colorIdx: noteColor,
       rotation: randomRot
     });
 
-    if (res?.success && res.data?.id) {
-      setNotes((prev) =>
-        prev.map((n) => (n.id === tempId ? { ...n, id: res.data.id } : n))
-      );
-    }
+    // Notificación elegante al usuario
+    alert('¡Tu mensaje fue enviado con éxito! Se publicará en el muro en breve tras la moderación.');
   };
 
   const handlePrevPage = () => {
@@ -315,10 +332,34 @@ export default function ChristmasPlaylistAndComments() {
                   </p>
                 </div>
 
-                {/* Espacio inferior libre característico de un Post-it con sutil sombra de despegue */}
-                <div className="mt-4 pt-4 relative flex items-center justify-end">
-                  {/* Sutil pestaña/sombra simulando que la esquina inferior está ligeramente levantada */}
-                  <div className="w-4 h-4 bg-black/5 rounded-tl-sm opacity-50" />
+                {/* Espacio inferior libre del Post-it con botón de Corazón interactivo */}
+                <div className="mt-3 pt-2 relative flex items-center justify-between border-t border-black/5">
+                  {/* Botón de Like / Corazón antispam */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleLike(note.id);
+                    }}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-black transition-all duration-200 cursor-pointer active:scale-90 ${
+                      note.likedByMe
+                        ? 'bg-rose-500/15 text-rose-600'
+                        : 'bg-black/5 text-slate-700 hover:bg-black/10'
+                    }`}
+                    title={note.likedByMe ? 'Ya no me gusta' : 'Me gusta'}
+                  >
+                    <Heart
+                      className={`w-3.5 h-3.5 transition-transform ${
+                        note.likedByMe
+                          ? 'fill-rose-500 text-rose-500 scale-110'
+                          : 'text-slate-600 hover:text-rose-500'
+                      }`}
+                    />
+                    <span>{note.likes || 0}</span>
+                  </button>
+
+                  {/* Sutil pestaña/sombra de despegue de la esquina del post-it */}
+                  <div className="w-4 h-4 bg-black/5 rounded-tl-sm opacity-40" />
                 </div>
               </div>
             );
@@ -335,7 +376,7 @@ export default function ChristmasPlaylistAndComments() {
 
       {/* Fin del tablero */}
 
-      {/* Modal para Agregar Comentario con Anuncio de Normas */}
+      {/* Modal para Agregar Comentario */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
@@ -363,23 +404,6 @@ export default function ChristmasPlaylistAndComments() {
               >
                 <X className="w-4 h-4" />
               </button>
-            </div>
-
-            {/* Anuncio de Normas y Moderación */}
-            <div className="mb-4 bg-amber-50 border border-amber-200/90 rounded-2xl p-3 text-amber-950 text-[11px] leading-relaxed">
-              <div className="flex items-center gap-1.5 font-black text-amber-900 mb-1">
-                <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
-                <span>Normas de convivencia del muro</span>
-              </div>
-              <ul className="list-disc pl-4 space-y-0.5 text-amber-900/90 font-medium">
-                <li>Solo comentarios de <strong>deseos navideños y opiniones</strong>.</li>
-                <li><strong>Prohibido lenguaje ofensivo</strong>, quejas o comentarios inapropiados.</li>
-                <li><strong>Evita colocar nombres</strong> o alusiones personales a compañeros.</li>
-              </ul>
-              <div className="mt-2 pt-1.5 border-t border-amber-200/60 flex items-center gap-1 text-[10px] text-amber-800 font-semibold">
-                <Info className="w-3 h-3 shrink-0" />
-                <span>Por seguridad se guardará información para la identificación del comentario.</span>
-              </div>
             </div>
 
             <form onSubmit={handleAddNote} className="space-y-3.5 text-xs">
