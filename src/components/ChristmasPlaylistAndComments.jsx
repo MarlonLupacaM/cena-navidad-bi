@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { Plus, X, ChevronLeft, ChevronRight, Heart, CheckCircle2, Sparkles } from 'lucide-react';
 import { getLiveComments, insertComment, toggleCommentLike, getOrCreateDeviceId } from '../lib/supabase';
 
 const POSTIT_COLORS = [
@@ -105,6 +105,7 @@ export default function ChristmasPlaylistAndComments() {
   const [text, setText] = useState('');
   const [selectedColor, setSelectedColor] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showModerationSuccessModal, setShowModerationSuccessModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
   const ITEMS_PER_PAGE = 8;
@@ -215,8 +216,8 @@ export default function ChristmasPlaylistAndComments() {
       rotation: randomRot
     });
 
-    // Notificación elegante al usuario
-    alert('¡Tu mensaje fue enviado con éxito! Se publicará en el muro en breve tras la moderación.');
+    // Abrir modal elegante de confirmación de moderación
+    setShowModerationSuccessModal(true);
   };
 
   const handlePrevPage = () => {
@@ -494,6 +495,58 @@ export default function ChristmasPlaylistAndComments() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal elegante: Mensaje enviado a moderación */}
+      {showModerationSuccessModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowModerationSuccessModal(false)}
+        >
+          <div
+            className="relative bg-white w-full max-w-sm rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-200 select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Botón cerrar esquina */}
+            <button
+              onClick={() => setShowModerationSuccessModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
+              title="Cerrar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Icono Badge Elegante */}
+            <div className="w-14 h-14 rounded-2xl bg-[#E8F9F9] border border-[#01ACAD]/30 flex items-center justify-center text-[#01ACAD] mb-4 shadow-xs">
+              <CheckCircle2 className="w-7 h-7" />
+            </div>
+
+            {/* Título */}
+            <h3 className="text-xl font-black text-[#002559] tracking-tight">
+              ¡Mensaje Recibido!
+            </h3>
+
+            {/* Descripción suave y minimalista */}
+            <p className="text-xs sm:text-sm text-slate-600 font-medium mt-2 leading-relaxed">
+              Tu post-it fue enviado con éxito. Se publicará en el muro en breve tras la moderación.
+            </p>
+
+            {/* Pill decorativa */}
+            <div className="inline-flex items-center gap-1.5 bg-[#F4F7FB] border border-slate-200 rounded-full px-3 py-1 mt-4 text-[11px] font-bold text-[#002559]">
+              <Sparkles className="w-3.5 h-3.5 text-[#01ACAD]" />
+              <span>Gracias por compartir con el equipo</span>
+            </div>
+
+            {/* Botón Aceptar */}
+            <button
+              type="button"
+              onClick={() => setShowModerationSuccessModal(false)}
+              className="w-full mt-5 bg-[#002559] hover:bg-[#001c47] text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95 cursor-pointer"
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}
