@@ -151,7 +151,7 @@ export const INITIAL_VENUES = [
           { label: "Plato de Fondo", items: ["Panceta ahumada o Bondiola ahumada + Puré de camote, Arroz árabe y Ensalada de fideos"] },
           { label: "Postre", items: ["Tres leches navideño"] }
         ],
-        extra: "Nota: Panceta o bondiola ahumada mínimo 10 und para pedirlas (no se aceptan cantidades menores). Pueden pedir la clásica guarnición de papa frita y ensalada de la casa."
+        extra: null
       },
       {
         title: "Paquete Navideño 3",
@@ -163,7 +163,7 @@ export const INITIAL_VENUES = [
           { label: "Plato de Fondo", items: ["Bife ancho o Bife angosto + Puré de camote, Arroz árabe y Ensalada de fideos"] },
           { label: "Postre", items: ["Tres leches navideño"] }
         ],
-        extra: "Nota: Pueden pedir la clásica guarnición de papa frita o grillada y ensalada de la casa."
+        extra: null
       },
       {
         title: "Paquete Navideño 4",
@@ -176,7 +176,7 @@ export const INITIAL_VENUES = [
           { label: "Plato de Fondo", items: ["Medallón de bondiola + Lomo fino 150 gr + Puré de camote, Arroz árabe y Ensalada de fideos"] },
           { label: "Postre", items: ["Tres leches navideño"] }
         ],
-        extra: "Nota: Pueden pedir la clásica guarnición de papa frita o grillada y ensalada de la casa."
+        extra: null
       }
     ],
     features: [
