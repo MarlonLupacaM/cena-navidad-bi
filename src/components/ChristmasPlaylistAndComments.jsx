@@ -378,7 +378,7 @@ export default function ChristmasPlaylistAndComments() {
               </ul>
               <div className="mt-2 pt-1.5 border-t border-amber-200/60 flex items-center gap-1 text-[10px] text-amber-800 font-semibold">
                 <Info className="w-3 h-3 shrink-0" />
-                <span>Por seguridad se registrarán datos del dispositivo.</span>
+                <span>Por seguridad se guardará información para la identificación del comentario.</span>
               </div>
             </div>
 
