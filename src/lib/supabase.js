@@ -113,34 +113,8 @@ export async function getLiveComments() {
   }
 }
 
-/**
- * Publica un nuevo post-it anónimo en el muro de Supabase
- */
 export async function insertComment({ type, text, colorIdx, rotation }) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
-      method: 'POST',
-      headers: {
-        ...headers,
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify({
-        type: type || 'deseo',
-        text: text.trim(),
-        color_idx: typeof colorIdx === 'number' ? colorIdx : 0,
-        rotation: rotation || 'rotate-0'
-      })
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText };
-    }
-
-    const created = await res.json();
-    return { success: true, data: Array.isArray(created) ? created[0] : created };
-  } catch (err) {
-    console.error('Error publicando comentario en Supabase:', err);
-    return { success: false, error: err.message };
-  }
+  // Publicación de comentarios deshabilitada por administración
+  console.warn('La publicación de nuevos comentarios se encuentra deshabilitada.');
+  return { success: false, error: 'La publicación de nuevos comentarios ha finalizado.' };
 }
