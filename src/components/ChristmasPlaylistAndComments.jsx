@@ -372,13 +372,13 @@ export default function ChristmasPlaylistAndComments() {
                 <span>Normas de convivencia del muro</span>
               </div>
               <ul className="list-disc pl-4 space-y-0.5 text-amber-900/90 font-medium">
-                <li>Solo comentarios de <strong>deseos navideños y opiniones</strong> sobre las sedes.</li>
+                <li>Solo comentarios de <strong>deseos navideños y opiniones</strong>.</li>
                 <li><strong>Prohibido lenguaje ofensivo</strong>, quejas o comentarios inapropiados.</li>
                 <li><strong>Evita colocar nombres</strong> o alusiones personales a compañeros.</li>
               </ul>
               <div className="mt-2 pt-1.5 border-t border-amber-200/60 flex items-center gap-1 text-[10px] text-amber-800 font-semibold">
                 <Info className="w-3 h-3 shrink-0" />
-                <span>Por seguridad y auditoría se registra la IP y el dispositivo de cada publicación.</span>
+                <span>Por seguridad se registrarán datos del dispositivo.</span>
               </div>
             </div>
 
