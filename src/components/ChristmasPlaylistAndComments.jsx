@@ -57,7 +57,7 @@ const ROTATIONS = [
 
 const INITIAL_NOTES = [
   {
-    id: 1,
+    id: 'init-1',
     type: 'deseo',
     text: '¡Que esta cena navideña sea una noche inolvidable para celebrar todos los logros y el esfuerzo de este año en equipo!',
     colorIdx: 0,
@@ -65,7 +65,7 @@ const INITIAL_NOTES = [
     time: 'Hace un momento'
   },
   {
-    id: 2,
+    id: 'init-2',
     type: 'deseo',
     text: 'Deseo que pasemos un momento lindo compartiendo juntos, bailando y despidiendo este gran año con la mejor energía.',
     colorIdx: 1,
@@ -73,7 +73,7 @@ const INITIAL_NOTES = [
     time: 'Hace un momento'
   },
   {
-    id: 3,
+    id: 'init-3',
     type: 'deseo',
     text: '¡Muchos éxitos para el próximo año! A disfrutar nuestra cena navideña al máximo con toda la buena vibra.',
     colorIdx: 2,
@@ -85,7 +85,7 @@ const INITIAL_NOTES = [
 export default function ChristmasPlaylistAndComments() {
   const [notes, setNotes] = useState(() => {
     try {
-      const saved = localStorage.getItem('caja_muro_postits_v4');
+      const saved = localStorage.getItem('caja_muro_postits_bi_v1');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -146,7 +146,7 @@ export default function ChristmasPlaylistAndComments() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('caja_muro_postits_v4', JSON.stringify(notes));
+      localStorage.setItem('caja_muro_postits_bi_v1', JSON.stringify(notes));
     } catch {
       // quota fallback
     }
@@ -180,19 +180,20 @@ export default function ChristmasPlaylistAndComments() {
         };
       });
 
-      // Las notas aprobadas de la BD van primero y las 3 notas iniciales siempre se preservan
-      const merged = [
-        ...formatted.filter((f) => !INITIAL_NOTES.some((init) => init.id === f.id || init.text === f.text)),
-        ...INITIAL_NOTES.map((init) => ({
-          ...init,
-          likes: typeof init.likes === 'number' ? init.likes : 0,
-          likedByMe: Boolean(init.likedByMe)
-        }))
-      ];
+            // Todos los comentarios reales de la BD van primero y se preservan
+      const initialNotesToAdd = INITIAL_NOTES.filter(
+        (init) => !formatted.some((f) => f.text === init.text)
+      ).map((init) => ({
+        ...init,
+        likes: typeof init.likes === 'number' ? init.likes : 0,
+        likedByMe: Boolean(init.likedByMe)
+      }));
+
+      const merged = [...formatted, ...initialNotesToAdd];
 
       setNotes(merged);
       try {
-        localStorage.setItem('caja_muro_postits_v4', JSON.stringify(merged));
+        localStorage.setItem('caja_muro_postits_bi_v1', JSON.stringify(merged));
       } catch {}
     };
 
@@ -237,15 +238,26 @@ export default function ChristmasPlaylistAndComments() {
     setSelectedColor((prev) => (prev + 1) % POSTIT_COLORS.length);
     setIsModalOpen(false);
 
-    // Guardado en Supabase (desactivado por defecto hasta aprobación manual)
-    await insertComment({
+    // Guardado en Supabase (sin restricciones ni moderación)
+    const result = await insertComment({
       type: noteType,
       text: noteText,
       colorIdx: noteColor,
       rotation: randomRot
     });
 
-    // Abrir modal elegante de confirmación de moderación
+    const newNote = {
+      id: result?.data?.id || ('temp-' + Date.now()),
+      type: noteType,
+      text: noteText,
+      colorIdx: noteColor,
+      rotation: randomRot,
+      likes: 0,
+      likedByMe: false,
+      time: 'Hace un momento'
+    };
+
+    setNotes((prev) => [newNote, ...prev.filter((n) => n.id !== newNote.id)]);
     setShowModerationSuccessModal(true);
   };
 
@@ -567,12 +579,12 @@ export default function ChristmasPlaylistAndComments() {
 
             {/* Título */}
             <h3 className="text-xl font-black text-[#002559] tracking-tight">
-              ¡Mensaje Recibido!
+              ¡Post-it Publicado!
             </h3>
 
             {/* Descripción suave y minimalista */}
             <p className="text-xs sm:text-sm text-slate-600 font-medium mt-2 leading-relaxed">
-              Tu post-it fue enviado con éxito. Se publicará en el muro en breve tras la moderación.
+              Tu post-it ha sido publicado con éxito en el muro. ¡Ya está visible para todo el equipo!
             </p>
 
             {/* Pill decorativa */}

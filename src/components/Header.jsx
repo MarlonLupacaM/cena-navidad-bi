@@ -6,7 +6,7 @@ export default function Header({
 }) {
   const [timeLeft, setTimeLeft] = useState(() => {
     const now = new Date();
-    const target = new Date(now.getFullYear(), now.getMonth(), 10, 23, 59, 59);
+    const target = new Date(now.getFullYear(), now.getMonth(), 16, 23, 59, 59);
     const diff = target - now;
     if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
     return {
@@ -20,7 +20,7 @@ export default function Header({
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
-      const target = new Date(now.getFullYear(), now.getMonth(), 10, 23, 59, 59);
+      const target = new Date(now.getFullYear(), now.getMonth(), 16, 23, 59, 59);
       const diff = target - now;
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -60,7 +60,7 @@ export default function Header({
 
             <div className="space-y-1 sm:space-y-2">
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md">
-                Elige tu Cena Navideña
+                Elige tu Cena Navideña - BI
               </h1>
               <p className="text-slate-200 text-xs sm:text-sm md:text-base max-w-2xl leading-relaxed font-medium">
                 Vota por tu local favorito para celebrar juntos este fin de año.
@@ -71,7 +71,7 @@ export default function Header({
           {/* Countdown timer perfectly centered, slim and compact on mobile */}
           <div className="flex flex-col items-center justify-center shrink-0 bg-white/10 backdrop-blur-md px-3.5 py-2 sm:px-6 sm:py-3.5 rounded-xl sm:rounded-2xl border border-white/15 shadow-sm w-auto self-start sm:self-center text-center">
             <span className="text-[10px] sm:text-xs text-white/95 font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 mb-1 sm:mb-1.5">
-              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#01ACAD]" /> Termina el 10 de noviembre
+              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#01ACAD]" /> Termina el 16 de noviembre
             </span>
             <div className="flex items-center justify-center gap-1.5 sm:gap-3 text-white">
               <div className="flex flex-col items-center min-w-[26px] sm:min-w-[42px]">

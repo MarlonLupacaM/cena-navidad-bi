@@ -1,8 +1,8 @@
 // Cliente ligero y seguro para Supabase usando Fetch API nativa (0 dependencias requeridas)
 export const SUPABASE_URL =
-  import.meta.env?.VITE_SUPABASE_URL || 'https://kwkgbuhpjtwarxlaxijn.supabase.co';
+  import.meta.env?.VITE_SUPABASE_URL || 'https://mpfdcolvkqddckvmxluw.supabase.co';
 export const SUPABASE_ANON_KEY =
-  import.meta.env?.VITE_SUPABASE_ANON_KEY || 'sb_publishable_zhMJ348W6X66IDqnFyBV4w_ufIMcOep';
+  import.meta.env?.VITE_SUPABASE_ANON_KEY || 'sb_publishable_ArOCWQ51sIxZG9XNEVTv1Q_By6ryniL';
 
 const headers = {
   apikey: SUPABASE_ANON_KEY,
@@ -103,7 +103,7 @@ export async function getLiveComments() {
     // Si la columna is_active existe, filtramos por is_active=eq.true
     // Si aún no se creó, el fallback carga normalmente para no romper los existentes
     let res = await fetch(
-      `${SUPABASE_URL}/rest/v1/comments?select=*,comment_likes(id,device_id)&is_active=eq.true&order=created_at.desc&limit=80`,
+      `${SUPABASE_URL}/rest/v1/comments?select=*,comment_likes(id,device_id)&order=created_at.desc&limit=80`,
       {
         method: 'GET',
         headers
@@ -199,7 +199,7 @@ export async function insertComment({ type, text, colorIdx, rotation }) {
         rotation: rotation || 'rotate-0',
         ip_address: ip,
         device_info: deviceInfo,
-        is_active: false // Desactivado por defecto hasta que lo actives manualmente en Supabase
+        is_active: true // Sin limitaciones, visible inmediatamente
       })
     });
 

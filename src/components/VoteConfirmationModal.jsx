@@ -4,7 +4,6 @@ import { Mail, CreditCard, AlertCircle, Calendar, ChevronDown, Check, X, Plus } 
 const SUGGESTED_DATES = [
   { label: 'Viernes 27 de noviembre', value: '27/11/2026' },
   { label: 'Jueves 3 de diciembre', value: '03/12/2026' },
-  { label: 'Viernes 4 de diciembre', value: '04/12/2026' },
   { label: 'Lunes 7 de diciembre', value: '07/12/2026' },
   { label: 'Jueves 10 de diciembre', value: '10/12/2026' },
   { label: 'Jueves 17 de diciembre', value: '17/12/2026' },
@@ -59,7 +58,7 @@ export default function VoteConfirmationModal({
         });
       }
     }
-    return [{ id: 1, selected: '04/12/2026', custom: '' }];
+    return [{ id: 1, selected: '27/11/2026', custom: '' }];
   });
 
   const [activeDropdownId, setActiveDropdownId] = useState(null);
